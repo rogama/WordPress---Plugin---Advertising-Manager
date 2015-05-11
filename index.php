@@ -70,6 +70,7 @@ add_action( 'add_meta_boxes', 'publiMetas' );
 function publiMetas(){
          add_meta_box("publi_meta_comision", "Comision", "publi_meta_comision", "publi", "side", "high");
          add_meta_box("publi_meta_fechas", "Activado", "publi_meta_fechas", "publi", "side", "high");
+         add_meta_box("publi_meta_prioridad", "Prioridad", "publi_meta_prioridad", "publi", "side", "high");
 }
  
 function publi_meta_comision() {
@@ -78,6 +79,10 @@ function publi_meta_comision() {
 
 function publi_meta_fechas() {
          include 'templates/admin/fields/fechas.php';
+}
+
+function publi_meta_prioridad() {
+         include 'templates/admin/fields/prioridad.php';
 }
 
 add_action( 'save_post', 'publi_save_metas', 10, 2);
@@ -90,6 +95,7 @@ function publi_save_metas( $post_id, $post) {
                   update_post_meta( $post_id, 'activado', filter_input(INPUT_POST, "activado", FILTER_VALIDATE_BOOLEAN));
                   update_post_meta( $post_id, 'fecha_ini', filter_input(INPUT_POST, "fecha_ini", FILTER_SANITIZE_STRING));
                   update_post_meta( $post_id, 'fecha_fin', filter_input(INPUT_POST, "fecha_fin", FILTER_SANITIZE_STRING));
+                  update_post_meta( $post_id, 'prioridad', filter_input(INPUT_POST, "prioridad", FILTER_VALIDATE_INT));
          }     
 }
 
