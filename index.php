@@ -5,7 +5,7 @@ Description: Administra y gestiona los bloques de Publi de tu Site
 Author: ROG@MA
 Version: 0.1
 */
-
+include_once 'widget/Publi_Widget.php';
 add_action( 'admin_enqueue_scripts', 'publi_add_scripts' );
 
 /**
@@ -57,11 +57,11 @@ function publi_register_taxonomies() {
 		)
 	);
    	register_taxonomy(
-		'sices',
+		'sizes',
 		'publi',
 		array(
 			'label' => __( 'Tamaños' ),
-			'rewrite' => array( 'slug' => 'sices' )
+			'rewrite' => array( 'slug' => 'sizes' )
 		)
 	);
 }
