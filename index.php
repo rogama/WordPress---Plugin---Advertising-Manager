@@ -6,12 +6,12 @@ Author: ROG@MA
 Version: 0.1
 */
 
-add_action( 'admin_enqueue_scripts', 'child_add_scripts' );
+add_action( 'admin_enqueue_scripts', 'publi_add_scripts' );
 
 /**
  * Register and enqueue a script that does not depend on a JavaScript library.
  */
-function child_add_scripts() {
+function publi_add_scripts() {
          wp_enqueue_script( 'jquery-ui-datepicker' , array( 'jquery' ));
          wp_enqueue_script( 'dates' , plugin_dir_url( __FILE__ ) . '/js/dates.js' );
          
@@ -98,25 +98,48 @@ function publi_completion_validator($post_id, $post) {
          if ( $post->post_type != 'publi' ) {return $post_id;}
 
          $fechaIni = get_post_meta( $post_id, 'fecha_ini', true );
+         $fechaFin = get_post_meta( $post_id, 'fecha_fin', true );
          // on attempting to publish - check for completion and intervene if necessary
          if ( ( isset( $_POST['publish'] ) || isset( $_POST['save'] ) ) && $_POST['post_status'] == 'publish' ) {
                   //  don't allow publishing while any of these are incomplete
                   if ( empty($fechaIni )) {
-                           global $wpdb;
-
-                           $wpdb->update( $wpdb->posts, array( 'post_status' => 'pending' ), array( 'ID' => $post_id ) );
+                           publi_post_to_pendig($post_id);
                            // filter the query URL to change the published message
-
                            add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "4", $location);' ) );
-                           return $location;
+                  }
+                  if ( !empty($fechaFin )) {
+                           if($fechaFin < $fechaIni){
+                                    publi_post_to_pendig($post_id);
+                                    add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "5", $location);' ) );
+                           }
+                           if($fechaFin < date("d/m/Y")){
+                                    publi_post_to_pendig($post_id);
+                                    add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "6", $location);' ) );
+                           }
                   }
          }
 }
 
-add_action( 'admin_notices', 'album_post_error_admin_message' );
+function publi_post_to_pendig($post_id){
+         global $wpdb;
+         $wpdb->update( $wpdb->posts, array( 'post_status' => 'pending' ), array( 'ID' => $post_id ) );
+}
 
-function album_post_error_admin_message() {
-         if ( isset( $_GET['message'] ) && $_GET['message'] == 4 ) {
-                  echo"<div class=\"error\"> <p>No se ha introducido fecha de inicio</p></div>";
+add_action( 'admin_notices', 'publi_post_error_admin_message' );
+function publi_post_error_admin_message() {
+         if ( isset( $_GET['message'] ) ) {
+                  switch ($_GET['message'] ) {
+                           case 4:
+                                    echo"<div class=\"error\"> <p>No se ha introducido fecha de inicio</p></div>";
+                                    break;
+                           case 5:
+                                    echo"<div class=\"error\"> <p>La fecha de Fin debe ser mayor a la de inicio</p></div>";
+                                    break;
+                           case 6:
+                                    echo"<div class=\"error\"> <p>La fecha de Fin debe ser mayor a hoy</p></div>";
+                                    break;
+                           default:
+                                    break;
+                  }
          }
 }
