@@ -68,16 +68,16 @@ function publi_register_taxonomies() {
 
 add_action( 'add_meta_boxes', 'publiMetas' );
 function publiMetas(){
-      add_meta_box("publi_meta_comision", "Comision", "publi_meta_comision", "publi", "side", "high");
-      add_meta_box("publi_meta_fechas", "Activado", "publi_meta_fechas", "publi", "side", "high");
+         add_meta_box("publi_meta_comision", "Comision", "publi_meta_comision", "publi", "side", "high");
+         add_meta_box("publi_meta_fechas", "Activado", "publi_meta_fechas", "publi", "side", "high");
 }
  
 function publi_meta_comision() {
-      include 'templates/admin/fields/comision.php';
+         include 'templates/admin/fields/comision.php';
 }
 
 function publi_meta_fechas() {
-      include 'templates/admin/fields/fechas.php';
+         include 'templates/admin/fields/fechas.php';
 }
 
 add_action( 'save_post', 'publi_save_metas', 10, 2);
@@ -95,22 +95,22 @@ function publi_save_metas( $post_id, $post) {
 
 
 function publi_completion_validator($post_id, $post) {
-    if ( $post->post_type != 'publi' ) {return $post_id;}
+         if ( $post->post_type != 'publi' ) {return $post_id;}
 
-    $fechaIni = get_post_meta( $post_id, 'fecha_ini', true );
-    // on attempting to publish - check for completion and intervene if necessary
-    if ( ( isset( $_POST['publish'] ) || isset( $_POST['save'] ) ) && $_POST['post_status'] == 'publish' ) {
-        //  don't allow publishing while any of these are incomplete
-        if ( empty($fechaIni )) {
-            global $wpdb;
+         $fechaIni = get_post_meta( $post_id, 'fecha_ini', true );
+         // on attempting to publish - check for completion and intervene if necessary
+         if ( ( isset( $_POST['publish'] ) || isset( $_POST['save'] ) ) && $_POST['post_status'] == 'publish' ) {
+                  //  don't allow publishing while any of these are incomplete
+                  if ( empty($fechaIni )) {
+                           global $wpdb;
 
-            $wpdb->update( $wpdb->posts, array( 'post_status' => 'pending' ), array( 'ID' => $post_id ) );
-            // filter the query URL to change the published message
+                           $wpdb->update( $wpdb->posts, array( 'post_status' => 'pending' ), array( 'ID' => $post_id ) );
+                           // filter the query URL to change the published message
 
-            add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "4", $location);' ) );
-            return $location;
-        }
-    }
+                           add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "4", $location);' ) );
+                           return $location;
+                  }
+         }
 }
 
 add_action( 'admin_notices', 'album_post_error_admin_message' );
