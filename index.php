@@ -80,12 +80,43 @@ function publi_meta_fechas() {
       include 'templates/admin/fields/fechas.php';
 }
 
-add_action( 'save_post', 'publi_save_metas' );
-function publi_save_metas( $post_id ) {
-      if ( isset( $_POST['comision'] ) ) {
-          update_post_meta( $post_id, 'comision',  $_POST['comision'] );
-          update_post_meta( $post_id, 'activado',  $_POST['activado'] );
-          update_post_meta( $post_id, 'fecha_ini',  $_POST['fecha_ini'] );
-          update_post_meta( $post_id, 'fecha_fin',  $_POST['fecha_fin'] );
-      }     
+add_action( 'save_post', 'publi_save_metas', 10, 2);
+add_action('save_post', 'publi_completion_validator', 20, 2);
+function publi_save_metas( $post_id, $post) {
+         if ( $post->post_type != 'publi' ) {return $post_id;}
+         
+         if ( isset($_POST['comision']) || isset($_POST['activado']) || isset($_POST['fecha_ini']) || isset($_POST['fecha_fin']) ) {
+                  update_post_meta( $post_id, 'comision', filter_input(INPUT_POST, "comision", FILTER_SANITIZE_STRING));
+                  update_post_meta( $post_id, 'activado', filter_input(INPUT_POST, "activado", FILTER_VALIDATE_BOOLEAN));
+                  update_post_meta( $post_id, 'fecha_ini', filter_input(INPUT_POST, "fecha_ini", FILTER_SANITIZE_STRING));
+                  update_post_meta( $post_id, 'fecha_fin', filter_input(INPUT_POST, "fecha_fin", FILTER_SANITIZE_STRING));
+         }     
+}
+
+
+function publi_completion_validator($post_id, $post) {
+    if ( $post->post_type != 'publi' ) {return $post_id;}
+
+    $fechaIni = get_post_meta( $post_id, 'fecha_ini', true );
+    // on attempting to publish - check for completion and intervene if necessary
+    if ( ( isset( $_POST['publish'] ) || isset( $_POST['save'] ) ) && $_POST['post_status'] == 'publish' ) {
+        //  don't allow publishing while any of these are incomplete
+        if ( empty($fechaIni )) {
+            global $wpdb;
+
+            $wpdb->update( $wpdb->posts, array( 'post_status' => 'pending' ), array( 'ID' => $post_id ) );
+            // filter the query URL to change the published message
+
+            add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "4", $location);' ) );
+            return $location;
+        }
+    }
+}
+
+add_action( 'admin_notices', 'album_post_error_admin_message' );
+
+function album_post_error_admin_message() {
+         if ( isset( $_GET['message'] ) && $_GET['message'] == 4 ) {
+                  echo"<div class=\"error\"> <p>No se ha introducido fecha de inicio</p></div>";
+         }
 }
