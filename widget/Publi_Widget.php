@@ -21,12 +21,24 @@ class PubliWidget extends WP_Widget {
   * @param array $instance Saved values from database.
   */
  public function widget( $args, $instance ) {
- 
          echo $args['before_widget'];
-         if ( ! empty( $instance['size'] ) ) {
-          echo $args['before_size'] . apply_filters( 'widget_title', $instance['size'] ). $args['after_size'];
-         }
-         echo __( 'Este es mi primer Widget!!!', 'text_domain' );
+         
+         $ads = get_posts(array(
+                           'post_type' => 'publi',
+                           'tax_query' => array(
+                                    array(
+                                      'taxonomy' => 'sizes',
+                                      'field' => 'id',
+                                      'terms' => $instance[ 'size' ]
+                                    )
+                           ),
+
+                         )
+         );
+         $ad = rand(0, count($ads)-1);
+
+         echo $ads[$ad]->post_content;
+         
          echo $args['after_widget'];
  }
 
