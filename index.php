@@ -17,6 +17,9 @@ function publi_add_scripts() {
          
          wp_register_style(   'jquery-ui-datepicker', 'http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css');
          wp_enqueue_style( 'jquery-ui-datepicker' );
+         
+         wp_register_style(   'personal-styles', plugin_dir_url( __FILE__ ) . '/css/style.css');
+         wp_enqueue_style( 'personal-styles' );
 }
 
 
@@ -91,7 +94,8 @@ function publi_save_metas( $post_id, $post) {
          if ( $post->post_type != 'publi' ) {return $post_id;}
          
          if ( isset($_POST['comision']) || isset($_POST['activado']) || isset($_POST['fecha_ini']) || isset($_POST['fecha_fin']) ) {
-                  update_post_meta( $post_id, 'comision', filter_input(INPUT_POST, "comision", FILTER_SANITIZE_STRING));
+                  update_post_meta( $post_id, 'comision_euro', filter_input(INPUT_POST, "comision_euro", FILTER_SANITIZE_STRING));
+                  update_post_meta( $post_id, 'comision_percent', filter_input(INPUT_POST, "comision_percent", FILTER_SANITIZE_STRING));
                   update_post_meta( $post_id, 'activado', filter_input(INPUT_POST, "activado", FILTER_VALIDATE_BOOLEAN));
                   update_post_meta( $post_id, 'fecha_ini', filter_input(INPUT_POST, "fecha_ini", FILTER_SANITIZE_STRING));
                   update_post_meta( $post_id, 'fecha_fin', filter_input(INPUT_POST, "fecha_fin", FILTER_SANITIZE_STRING));

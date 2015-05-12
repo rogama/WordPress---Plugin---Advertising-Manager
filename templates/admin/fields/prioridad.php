@@ -4,5 +4,5 @@
 ?>
 <p>
          <label>Prioridad:</label>
-         <input type="number" maxlength="180" name="prioridad" value="<?php echo  (isset($prioridad))?$prioridad:0; ?>" style="width: 98.5%;"  />
+         <input type="number" class="input-99" name="prioridad" value="<?php echo  (isset($prioridad))?$prioridad:0; ?>" />
 </p>
