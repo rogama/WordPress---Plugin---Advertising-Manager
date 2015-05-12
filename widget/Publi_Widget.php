@@ -26,21 +26,21 @@ class PubliWidget extends WP_Widget {
          $ads = self::getAds($instance);
          
 
-         $ad = rand(0, count($ads)-1);
+         $adNumber = rand(0, count($ads)-1);
 
-         echo $ads[$ad]->post_content;
+         echo $ads[$adNumber]->post_content;
          
          echo $args['after_widget'];
  }
 /**
- * recogemos todos los anuncios que son del tamaño establecido, y ademas no han caducado
+ * recogemos todos los anuncios que son del tamaño establecido, estan activos, y además no han caducado
  * 
  * @return array
  */
 function getAds($instance){
          return  get_posts(array(
                            'post_type' => 'publi',
-                           'posts_per_page' => -1, 
+                           'posts_per_page' => -1,
                            'tax_query' => array(
                                     array(
                                       'taxonomy' => 'sizes',
