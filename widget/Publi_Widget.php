@@ -23,8 +23,24 @@ class PubliWidget extends WP_Widget {
  public function widget( $args, $instance ) {
          echo $args['before_widget'];
          
-         $ads = get_posts(array(
+         $ads = self::getAds($instance);
+         
+
+         $ad = rand(0, count($ads)-1);
+
+         echo $ads[$ad]->post_content;
+         
+         echo $args['after_widget'];
+ }
+/**
+ * recogemos todos los anuncios que son del tamaño establecido, y ademas no han caducado
+ * 
+ * @return array
+ */
+function getAds($instance){
+         return  get_posts(array(
                            'post_type' => 'publi',
+                           'posts_per_page' => -1, 
                            'tax_query' => array(
                                     array(
                                       'taxonomy' => 'sizes',
@@ -32,16 +48,38 @@ class PubliWidget extends WP_Widget {
                                       'terms' => $instance[ 'size' ]
                                     )
                            ),
-
-                         )
-         );
-         $ad = rand(0, count($ads)-1);
-
-         echo $ads[$ad]->post_content;
-         
-         echo $args['after_widget'];
+                           'meta_query' => array(
+                                               array(
+                                    'relation' => 'OR',
+                                             array(
+                                                      'key'     => 'fecha_fin',
+                                                      'value'   => date("d/m/Y"),
+                                                      'compare' => '>='
+                                             ),
+                                             array(
+                                                      'key'     => 'fecha_fin',
+                                                      'value'   => "",
+                                                      'compare' => '='
+                                             )),
+                                    'relation' => 'AND',
+                                             array(
+                                                      'key'     => 'fecha_ini',
+                                                      'value'   => date("d/m/Y"),
+                                                      'compare' => '<='
+                                             ),
+                                             array(
+                                                      'key'     => 'activado',
+                                                      'value'   => "1",
+                                                      'compare' => '='
+                                             )
+                           )
+                         ));
+                         
+         // Oops, $results has nothing, or something we did not expect
+         // Show the query
+//         return new WP_Query( $arg );
+//         var_dump($results->request, "esto");
  }
-
  /**
   * Back-end widget form.
   *
