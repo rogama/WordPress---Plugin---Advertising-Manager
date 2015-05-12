@@ -109,23 +109,34 @@ function publi_completion_validator($post_id, $post) {
 
          $fechaIni = get_post_meta( $post_id, 'fecha_ini', true );
          $fechaFin = get_post_meta( $post_id, 'fecha_fin', true );
+
          // on attempting to publish - check for completion and intervene if necessary
          if ( ( isset( $_POST['publish'] ) || isset( $_POST['save'] ) ) && $_POST['post_status'] == 'publish' ) {
                   //  don't allow publishing while any of these are incomplete
-                  if ( empty($fechaIni )) {
+                  validateDates($post_id, $fechaIni, $fechaFin) ;
+                  
+                  if ( empty(get_post_meta( $post_id, 'comision_euro', true ) ) && empty(get_post_meta( $post_id, 'comision_percent', true ))) {
                            publi_post_to_pendig($post_id);
                            // filter the query URL to change the published message
-                           add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "4", $location);' ) );
+                           add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "7", $location);' ) );
                   }
-                  if ( !empty($fechaFin )) {
-                           if($fechaFin < $fechaIni){
-                                    publi_post_to_pendig($post_id);
-                                    add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "5", $location);' ) );
-                           }
-                           if($fechaFin < date("d/m/Y")){
-                                    publi_post_to_pendig($post_id);
-                                    add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "6", $location);' ) );
-                           }
+         }
+}
+
+function validateDates($post_id, $fechaIni, $fechaFin) {
+         if ( empty($fechaIni )) {
+                  publi_post_to_pendig($post_id);
+                  // filter the query URL to change the published message
+                  add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "4", $location);' ) );
+         }
+         if ( !empty($fechaFin )) {
+                  if($fechaFin < $fechaIni){
+                           publi_post_to_pendig($post_id);
+                           add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "5", $location);' ) );
+                  }
+                  if($fechaFin < date("d/m/Y")){
+                           publi_post_to_pendig($post_id);
+                           add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "6", $location);' ) );
                   }
          }
 }
@@ -147,6 +158,9 @@ function publi_post_error_admin_message() {
                                     break;
                            case 6:
                                     echo"<div class=\"error\"> <p>La fecha de Fin debe ser mayor a hoy</p></div>";
+                                    break;
+                           case 7:
+                                    echo"<div class=\"error\"> <p>Debe rellenar una comision</p></div>";
                                     break;
                            default:
                                     break;

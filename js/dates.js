@@ -10,9 +10,9 @@ $(function(){
 });
 $(document).ready(function(){
     $("#fecha_ini").change(function(){
-        if($( this ).val() > $("#fecha_fin").val()){
+        if($("#fecha_fin").val() !== "" && $( this ).val() > $("#fecha_fin").val()){
             $( this ).focus();
-            alert("La fecha de inicio debe ser menor la de fin");
+            alert("La fecha de inicio debe ser menor o igual a la de fin");
         }
     });
     
@@ -23,7 +23,7 @@ $(document).ready(function(){
         }
         if($( this ).val() < $("#fecha_ini").val()){
             $( this ).focus();
-            alert("La fecha fin debe ser mayora la de inicio");
+            alert("La fecha fin debe ser mayor o igual a la de inicio");
         }
     });
 });
