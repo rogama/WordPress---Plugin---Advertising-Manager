@@ -15,6 +15,10 @@ add_action( 'admin_enqueue_scripts', 'publi_add_scripts' );
  * Register and enqueue a script that does not depend on a JavaScript library.
  */
 function publi_add_scripts() {
+         wp_deregister_script('jquery');
+         wp_register_script( 'jquery', "https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js");
+         wp_enqueue_script( 'jquery' );
+         
          wp_enqueue_script( 'jquery-ui-datepicker' , array( 'jquery' ));
          wp_enqueue_script( 'dates' , plugin_dir_url( __FILE__ ) . '/js/dates.js' );
          
