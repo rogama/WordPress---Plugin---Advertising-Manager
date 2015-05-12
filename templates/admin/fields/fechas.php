@@ -12,9 +12,9 @@
 </p>
 <p>
          <label>Fecha de Inicio:</label>
-         <input type="date" maxlength="180" id="fecha_ini" name="fecha_ini" class="custom_date datepicker" value="<?php echo  (isset($fecha_ini))?$fecha_ini:""; ?>" style="width: 98.5%;"  />
+         <input type="date" maxlength="180" id="fecha_ini" name="fecha_ini" class="custom_date datepicker input-99" value="<?php echo  (isset($fecha_ini))?$fecha_ini:""; ?>"  />
 </p>
 <p>
          <label>Fecha de Fin:</label>
-         <input type="date" maxlength="180" id="fecha_fin" name="fecha_fin" class="custom_date datepicker" value="<?php echo  (isset($fecha_fin))?$fecha_fin:""; ?>" style="width: 98.5%;"  />
+         <input type="date" maxlength="180" id="fecha_fin" name="fecha_fin" class="custom_date datepicker input-99" value="<?php echo  (isset($fecha_fin))?$fecha_fin:""; ?>"  />
 </p>

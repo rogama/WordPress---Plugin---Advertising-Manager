@@ -1,0 +1,6 @@
+@while $i < 100 {
+  .#{$class-input-name}-#{$i}{
+    width: 1% * $i;
+  }
+  $i: $i + $input-step;
+}
