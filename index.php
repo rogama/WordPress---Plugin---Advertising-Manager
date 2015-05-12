@@ -1,9 +1,12 @@
 <?php
 /*
 Plugin Name: Gestor de Publicidad
+Plugin URI
 Description: Administra y gestiona los bloques de Publi de tu Site
 Author: ROG@MA
-Version: 0.1
+Author URI: http://www.rogamainformatica.es
+Version: 0.0.2
+License: GPL2
 */
 include_once 'widget/Publi_Widget.php';
 add_action( 'admin_enqueue_scripts', 'publi_add_scripts' );
