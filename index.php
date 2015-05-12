@@ -118,7 +118,7 @@ function publi_completion_validator($post_id, $post) {
                   //  don't allow publishing while any of these are incomplete
                   validateDates($post_id, $fechaIni, $fechaFin) ;
                   
-                  if ( empty(get_post_meta( $post_id, 'comision_euro', true ) ) && empty(get_post_meta( $post_id, 'comision_percent', true ))) {
+                  if ( !get_post_meta( $post_id, 'comision_euro', true ) && !get_post_meta( $post_id, 'comision_percent', true )) {
                            publi_post_to_pendig($post_id);
                            // filter the query URL to change the published message
                            add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "7", $location);' ) );
