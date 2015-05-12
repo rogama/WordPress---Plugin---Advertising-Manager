@@ -24,11 +24,25 @@ class PubliWidget extends WP_Widget {
          echo $args['before_widget'];
          
          $ads = self::getAds($instance);
+
+         $totalComisionEuro = 0;
+         $totalComisionPercent = 0;
+         foreach ($ads as $ad) {
+                  $totalComisionEuro += get_post_meta( $ad->ID, 'comision_euro', true );
+                  $totalComisionPercent += get_post_meta( $ad->ID, 'comision_percent', true ) ;
+         }
          
+         $prevPercentEuro = 0;
+         $prevPercentPercent = 0;
+         foreach ($ads as $ad) {
+                  $ad->percentEuro = self::getPercent($ad->ID, "comision_euro", $totalComisionEuro, $prevPercentEuro);
+                  $ad->percentPercent = self::getPercent($ad->ID, "comision_percent", $totalComisionPercent, $prevPercentPercent);
+                  
+                  $prevPercentEuro = $ad->percentEuro["max"];
+                  $prevPercentPercent = $ad->percentPercent["max"];
+         }
 
-         $adNumber = rand(0, count($ads)-1);
-
-         echo $ads[$adNumber]->post_content;
+         echo self::getAdContent($ads, mt_rand(0, 100));
          
          echo $args['after_widget'];
  }
@@ -79,6 +93,43 @@ function getAds($instance){
          // Show the query
 //         return new WP_Query( $arg );
 //         var_dump($results->request, "esto");
+ }
+ /**
+  * return array of min and max percent to ad
+  * 
+  * @param int $postId
+  * @param string $field
+  * @param int $total
+  * @param int $prevPercent
+  *
+  *  @return array
+  */
+ function getPercent($postId, $field, $total, $prevPercent){
+          $value = get_post_meta( $postId, $field, true );
+          $percent =  (($value)? $value : 0) * 100 / (($total !== 0)? $total : 1);
+          return array("min" => $prevPercent, "max" => $prevPercent + $percent);
+ }
+ /**
+  * return a String of post_Content of ad into percent
+  * 
+  * @param array $ads
+  * @param int $percent
+  * @return string
+  */
+ function getAdContent($ads, $percent){
+         $selectComision = mt_rand(0, 1);
+         foreach ($ads as $ad) {
+                  if($selectComision === 0 &&
+                                    $ad->percentEuro["min"] <= $percent &&
+                                    $ad->percentEuro["max"] >= $percent){
+                           return $ad->post_content;
+                           
+                  }elseif($selectComision === 1 &&
+                                    $ad->percentPercent["min"] <= $percent &&
+                                    $ad->percentPercent["max"] >= $percent){
+                           return $ad->post_content;
+                  }
+         }
  }
  /**
   * Back-end widget form.
