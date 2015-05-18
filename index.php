@@ -9,6 +9,8 @@ Version: 0.0.3
 License: GPL2
 */
 include_once 'widget/Publi_Widget.php';
+include_once 'functions.php';
+
 add_action( 'admin_enqueue_scripts', 'publi_add_scripts' );
 
 /**
@@ -171,3 +173,10 @@ function publi_post_error_admin_message() {
                   }
          }
 }
+
+function publi_shortcode( $atts ) {
+         $ads = getAds(get_term_by( 'name', $atts['size'], 'sizes'));
+         $totalComision = getPercents($ads);
+         echo getAdContent(addPercentToAd($ads, $totalComision), mt_rand(0, 100));
+}
+add_shortcode( 'publi-tag', 'publi_shortcode' );
