@@ -1,4 +1,4 @@
-$(function(){
+jQuery(document).ready(function($){
     // Datepicker
     $('input[type=date]').each(function(){
         this.type="text";
@@ -7,8 +7,7 @@ $(function(){
             dateFormat: 'dd/mm/yy',
             numberOfMonths: 1 
    });
-});
-$(document).ready(function(){
+    
     $("#fecha_ini").change(function(){
         if($("#fecha_fin").val() !== "" && $( this ).val() > $("#fecha_fin").val()){
             $( this ).focus();
