@@ -5,7 +5,7 @@ Plugin URI
 Description: Administra y gestiona los bloques de Publi de tu Site
 Author: ROG@MA
 Author URI: http://www.rogamainformatica.es
-Version: 0.0.2
+Version: 0.0.3
 License: GPL2
 */
 include_once 'widget/Publi_Widget.php';
@@ -14,7 +14,7 @@ add_action( 'admin_enqueue_scripts', 'publi_add_scripts' );
 /**
  * Register and enqueue a script that does not depend on a JavaScript library.
  */
-function publi_add_scripts() {
+function publi_add_scripts() {       
          wp_enqueue_script( 'jquery-ui-datepicker' , array( 'jquery' ));
          wp_enqueue_script( 'dates' , plugin_dir_url( __FILE__ ) . '/js/dates.js' );
          
