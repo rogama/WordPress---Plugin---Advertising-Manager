@@ -1,4 +1,5 @@
 <?php
+include plugin_dir_path( __FILE__ ) . '../functions.php';
 class PubliWidget extends WP_Widget {
 
          /**
@@ -23,113 +24,13 @@ class PubliWidget extends WP_Widget {
  public function widget( $args, $instance ) {
          echo $args['before_widget'];
          
-         $ads = self::getAds($instance);
+         $ads = getAds($instance['size']);
 
-         $totalComisionEuro = 0;
-         $totalComisionPercent = 0;
-         foreach ($ads as $ad) {
-                  $totalComisionEuro += get_post_meta( $ad->ID, 'comision_euro', true );
-                  $totalComisionPercent += get_post_meta( $ad->ID, 'comision_percent', true ) ;
-         }
-         
-         $prevPercentEuro = 0;
-         $prevPercentPercent = 0;
-         foreach ($ads as $ad) {
-                  $ad->percentEuro = self::getPercent($ad->ID, "comision_euro", $totalComisionEuro, $prevPercentEuro);
-                  $ad->percentPercent = self::getPercent($ad->ID, "comision_percent", $totalComisionPercent, $prevPercentPercent);
-                  
-                  $prevPercentEuro = $ad->percentEuro["max"];
-                  $prevPercentPercent = $ad->percentPercent["max"];
-         }
+         $totalComision = getPercents($ads);
 
-         echo self::getAdContent($ads, mt_rand(0, 100));
+         echo getAdContent(addPercentToAd($ads, $totalComision), mt_rand(0, 100));
          
          echo $args['after_widget'];
- }
-/**
- * recogemos todos los anuncios que son del tamaño establecido, estan activos, y además no han caducado
- * 
- * @return array
- */
-function getAds($instance){
-         return  get_posts(array(
-                           'post_type' => 'publi',
-                           'posts_per_page' => -1,
-                           'tax_query' => array(
-                                    array(
-                                      'taxonomy' => 'sizes',
-                                      'field' => 'id',
-                                      'terms' => $instance[ 'size' ]
-                                    )
-                           ),
-                           'meta_query' => array(
-                                               array(
-                                    'relation' => 'OR',
-                                             array(
-                                                      'key'     => 'fecha_fin',
-                                                      'value'   => date("d/m/Y"),
-                                                      'compare' => '>='
-                                             ),
-                                             array(
-                                                      'key'     => 'fecha_fin',
-                                                      'value'   => "",
-                                                      'compare' => '='
-                                             )),
-                                    'relation' => 'AND',
-                                             array(
-                                                      'key'     => 'fecha_ini',
-                                                      'value'   => date("d/m/Y"),
-                                                      'compare' => '<='
-                                             ),
-                                             array(
-                                                      'key'     => 'activado',
-                                                      'value'   => "1",
-                                                      'compare' => '='
-                                             )
-                           )
-                         ));
-                         
-         // Oops, $results has nothing, or something we did not expect
-         // Show the query
-//         return new WP_Query( $arg );
-//         var_dump($results->request, "esto");
- }
- /**
-  * return array of min and max percent to ad
-  * 
-  * @param int $postId
-  * @param string $field
-  * @param int $total
-  * @param int $prevPercent
-  *
-  *  @return array
-  */
- function getPercent($postId, $field, $total, $prevPercent){
-          $value = get_post_meta( $postId, $field, true );
-          $percent =  (($value)? $value : 0) * 100 / (($total !== 0)? $total : 1);
-          return array("min" => $prevPercent, "max" => $prevPercent + $percent);
- }
- /**
-  * return a String of post_Content of ad into percent
-  * 
-  * @param array $ads
-  * @param int $percent
-  * @return string
-  */
- function getAdContent($ads, $percent){
-         $selectComision = mt_rand(0, 1);
-         foreach ($ads as $ad) {
-                  if($selectComision === 0 &&
-                                    $ad->percentEuro["min"] <= $percent &&
-                                    $ad->percentEuro["max"] >= $percent){
-                           return $ad->post_content;
-                           
-                  }elseif($selectComision === 1 &&
-                                    $ad->percentPercent["min"] <= $percent &&
-                                    $ad->percentPercent["max"] >= $percent){
-                           return $ad->post_content;
-                  }
-         }
  }
  /**
   * Back-end widget form.
