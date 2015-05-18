@@ -5,7 +5,7 @@ Plugin URI
 Description: Administra y gestiona los bloques de Publi de tu Site
 Author: ROG@MA
 Author URI: http://www.rogamainformatica.es
-Version: 0.0.3
+Version: 0.0.4
 License: GPL2
 */
 include_once 'widget/Publi_Widget.php';
