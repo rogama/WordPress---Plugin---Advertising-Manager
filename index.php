@@ -180,3 +180,116 @@ function publi_shortcode( $atts ) {
          echo getAdContent(addPercentToAd($ads, $totalComision), mt_rand(0, 100));
 }
 add_shortcode( 'publi-tag', 'publi_shortcode' );
+
+/**
+ * Add custom Columns
+ */
+add_filter( 'manage_edit-publi_columns', 'publi_custom_columns' ) ;
+function publi_custom_columns( $columns ) {
+	$custom = array(
+		'comision_euro' => __( 'Comision €' ),
+        'comision_percent' => __( 'Comision %' ),
+        'activado' => __( 'Activate' ),
+        'proveedor' => __( 'Proveedor' ),
+        'sizes' => __( 'sizes' )
+	);
+    return array_merge($columns, $custom);
+}
+
+add_action( 'manage_publi_posts_custom_column', 'publi_custom_columns_content', 10, 2 );
+function publi_custom_columns_content( $column, $post_id ) {
+	global $post;
+    if ( $post->post_type != 'publi' ) {return $post_id;}
+
+	switch( $column ) {
+		case 'comision_euro' :
+			$duration = get_post_meta( $post_id, 'comision_euro', true );
+			if ( empty( $duration ) ){
+                echo __( 'No Commision' );
+            }else{
+                echo $duration . " €";
+            }
+			break;
+		case 'comision_percent' :
+			$duration = get_post_meta( $post_id, 'comision_percent', true );
+			if ( empty( $duration ) ){
+                echo __( 'No Commision' );
+            }else{
+                echo $duration . " %";
+            }
+			break;
+        case 'activado' :
+            echo '<input type="checkbox" ' . ((get_post_meta( $post_id, 'activado', true ))?'checked':'') . ' disabled>';
+			break;
+        case 'proveedor' :
+			$terms = get_the_terms( $post_id, 'proveedor' );
+			if ( !empty( $terms ) ) {
+				$out = array();
+				foreach ( $terms as $term ) {
+					$out[] = sprintf( '<a href="%s">%s</a>',
+						esc_url( add_query_arg( array( 'post_type' => $post->post_type, 'proveedor' => $term->slug ), 'edit.php' ) ),
+						esc_html( sanitize_term_field( 'name', $term->name, $term->term_id, 'proveedor', 'display' ) )
+					);
+				}
+				echo join( ', ', $out );
+			}
+			else {
+				_e( 'No Provider' );
+			}
+			break;
+        case 'sizes' :
+			$terms = get_the_terms( $post_id, 'sizes' );
+			if ( !empty( $terms ) ) {
+				$out = array();
+				foreach ( $terms as $term ) {
+					$out[] = sprintf( '<a href="%s">%s</a>',
+						esc_url( add_query_arg( array( 'post_type' => $post->post_type, 'sizes' => $term->slug ), 'edit.php' ) ),
+						esc_html( sanitize_term_field( 'name', $term->name, $term->term_id, 'sizes', 'display' ) )
+					);
+				}
+				echo join( ', ', $out );
+			}
+			else {
+				_e( 'No Sizes' );
+			}
+			break;
+		default :
+			break;
+	}
+}
+
+add_filter( 'manage_edit-publi_sortable_columns', 'publi_custom_columns_sort' );
+function publi_custom_columns_sort( $columns ) {
+	$columns['comision_euro'] = "comision_euro";
+    $columns['comision_percent'] = __( 'Comision %' );
+    $columns['activado'] = __( 'Activate' );
+    $columns['proveedor'] = __( 'Proveedor' );
+    $columns['sizes'] = __( 'sizes' );
+
+	return $columns;
+}
+
+/* Only run our customization on the 'edit.php' page in the admin. */
+add_action( 'load-edit.php', 'publi_edit_load' );
+
+function publi_edit_load() {
+	add_filter( 'request', 'publi_sort_ads' );
+}
+
+
+function publi_sort_ads( $vars ) {
+
+	if ( isset( $vars['post_type'] ) && 'publi' == $vars['post_type'] ) {
+		if ( isset( $vars['orderby'] ) && 'comision_euro' == $vars['orderby'] ) {
+			$vars = array_merge(
+				$vars,
+				array(
+					'meta_key' => 'comision_euro',
+					'orderby' => 'meta_value_num'
+				)
+			);
+		}
+	}
+
+	return $vars;
+}add_shortcode( 'publi-tag', 'publi_shortcode' );
