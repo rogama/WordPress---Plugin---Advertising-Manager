@@ -21,10 +21,10 @@ function publi_add_scripts() {
          wp_enqueue_script( 'jquery-ui-datepicker' , array( 'jquery' ));
          wp_enqueue_script( 'dates' , plugin_dir_url( __FILE__ ) . '/js/dates.js' );
          
-         wp_register_style(   'jquery-ui-datepicker', 'http://code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css');
+         wp_register_style( 'jquery-ui-datepicker', plugin_dir_url( __FILE__ ) . 'css/JQuery/jquery-ui.min.css');
          wp_enqueue_style( 'jquery-ui-datepicker' );
          
-         wp_register_style(   'personal-styles', plugin_dir_url( __FILE__ ) . '/css/style.css');
+         wp_register_style( 'personal-styles', plugin_dir_url( __FILE__ ) . '/css/style.css');
          wp_enqueue_style( 'personal-styles' );
 }
 
