@@ -138,7 +138,6 @@ function publi_completion_validator($post_id, $post) {
 
 function validateDates($post_id, $fechaIni, $fechaFin) {
     global $post;
-    var_dump($post); die;
     if ( $post->post_type != 'publi' ) {
 
          return $post_id;
@@ -186,13 +185,12 @@ function publi_post_error_admin_message() {
         }
     }
 }
-
+add_shortcode( 'publi-tag', 'publi_shortcode' );
 function publi_shortcode( $atts ) {
          $ads = getAds(get_term_by( 'name', $atts['size'], 'sizes'));
          $totalComision = getPercents($ads);
          echo getAdContent(addPercentToAd($ads, $totalComision), mt_rand(0, 100));
 }
-add_shortcode( 'publi-tag', 'publi_shortcode' );
 
 /**
  * Add custom Columns
@@ -274,10 +272,10 @@ function publi_custom_columns_content( $column, $post_id ) {
 add_filter( 'manage_edit-publi_sortable_columns', 'publi_custom_columns_sort' );
 function publi_custom_columns_sort( $columns ) {
 	$columns['comision_euro'] = "comision_euro";
-    $columns['comision_percent'] = __( 'Comision %' );
-    $columns['activado'] = __( 'Activate' );
-    $columns['proveedor'] = __( 'Proveedor' );
-    $columns['sizes'] = __( 'sizes' );
+    $columns['comision_percent'] = "comision_percent";
+    $columns['activado'] = "activate";
+    $columns['proveedor'] = "proveedor";
+    $columns['sizes'] = "sizes";
 
 	return $columns;
 }
@@ -289,20 +287,63 @@ function publi_edit_load() {
 	add_filter( 'request', 'publi_sort_ads' );
 }
 
-
 function publi_sort_ads( $vars ) {
 
-	if ( isset( $vars['post_type'] ) && 'publi' == $vars['post_type'] ) {
-		if ( isset( $vars['orderby'] ) && 'comision_euro' == $vars['orderby'] ) {
-			$vars = array_merge(
-				$vars,
-				array(
-					'meta_key' => 'comision_euro',
-					'orderby' => 'meta_value_num'
-				)
-			);
-		}
+	if ( isset( $vars['post_type'] ) && $vars['post_type'] == 'publi') {
+		$vars = sort_ads_by_comision_euro($vars);
+        $vars = sort_ads_by_comision_percent($vars);
+        $vars = sort_ads_by_activate($vars);
 	}
 
 	return $vars;
-}add_shortcode( 'publi-tag', 'publi_shortcode' );
+}
+
+function sort_ads_by_comision_euro($vars){
+    if ( isset( $vars['orderby'] ) && 'comision_euro' == $vars['orderby'] ) {
+        $vars = array_merge(
+                    $vars,
+                    array(
+                        'meta_key' => 'comision_euro',
+                        'orderby' => 'meta_value_num'
+                    )
+        );
+    }
+    
+    return $vars;
+}
+
+function sort_ads_by_comision_percent($vars){
+    if ( isset( $vars['orderby'] ) && 'comision_percent' == $vars['orderby'] ) {
+        $vars = array_merge(
+                    $vars,
+                    array(
+                        'meta_key' => 'comision_percent',
+                        'orderby' => 'meta_value_num'
+                    )
+        );
+    }
+    
+    return $vars;
+}
+
+function sort_ads_by_activate($vars){
+    if ( isset( $vars['orderby'] ) && 'activate' == $vars['orderby'] ) {
+        $vars = array_merge(
+                    $vars,
+                    array(
+                        'meta_key' => 'activado',
+                        'orderby' => 'meta_value_num'
+                    )
+        );
+    }
+    
+    return $vars;
+}
+
+add_filter( 'manage_taxonomies_for_publi_columns', 'publi_type_columns', 10, 2 );
+function publi_type_columns( $taxonomies, $post_type  ) {
+    $taxonomies[] = "proveedor";
+    $taxonomies[] = "sizes";
+    
+    return $taxonomies;
+}
