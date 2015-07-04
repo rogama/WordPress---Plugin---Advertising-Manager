@@ -36,7 +36,7 @@ function gestorPubli() {
 	$labels = array(
 		'name'                => 'Anuncios',
 		'singular_name'       => 'Anuncio',
-              'add_new'             => 'Crear nuevo anuncio',
+        'add_new'             => 'Crear nuevo anuncio',
 		'add_new_item'        => 'Crear nuevo anuncio',
 		'edit_item'           => 'Editar Anuncio',
 		'view_item'           => 'Ver Anuncio',
@@ -95,9 +95,12 @@ function publi_meta_prioridad() {
 }
 
 add_action( 'save_post', 'publi_save_metas', 10, 2);
-add_action('save_post', 'publi_completion_validator', 20, 2);
+add_action( 'save_post', 'publi_completion_validator', 20, 2);
 function publi_save_metas( $post_id, $post) {
-         if ( $post->post_type != 'publi' ) {return $post_id;}
+         if ( $post->post_type != 'publi' ) {
+             
+             return $post_id;
+         }
          
          if ( isset($_POST['comision']) || isset($_POST['activado']) || isset($_POST['fecha_ini']) || isset($_POST['fecha_fin']) ) {
                   update_post_meta( $post_id, 'comision_euro', filter_input(INPUT_POST, "comision_euro", FILTER_SANITIZE_STRING));
@@ -111,17 +114,21 @@ function publi_save_metas( $post_id, $post) {
 
 
 function publi_completion_validator($post_id, $post) {
-         if ( $post->post_type != 'publi' ) {return $post_id;}
-
+         if ( $post->post_type != 'publi' ) {
+             
+             return $post_id;
+         }
+         
          $fechaIni = get_post_meta( $post_id, 'fecha_ini', true );
-         $fechaFin = get_post_meta( $post_id, 'fecha_fin', true );
+         $fechaFin = get_post_meta( $post_id, 'fecha_fin', true );        
 
          // on attempting to publish - check for completion and intervene if necessary
          if ( ( isset( $_POST['publish'] ) || isset( $_POST['save'] ) ) && $_POST['post_status'] == 'publish' ) {
                   //  don't allow publishing while any of these are incomplete
                   validateDates($post_id, $fechaIni, $fechaFin) ;
                   
-                  if ( !get_post_meta( $post_id, 'comision_euro', true ) && !get_post_meta( $post_id, 'comision_percent', true )) {
+                  if ( !get_post_meta( $post_id, 'comision_euro', true ) && 
+                          !get_post_meta( $post_id, 'comision_percent', true )) {
                            publi_post_to_pendig($post_id);
                            // filter the query URL to change the published message
                            add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "7", $location);' ) );
@@ -130,48 +137,54 @@ function publi_completion_validator($post_id, $post) {
 }
 
 function validateDates($post_id, $fechaIni, $fechaFin) {
-         if ( empty($fechaIni )) {
-                  publi_post_to_pendig($post_id);
-                  // filter the query URL to change the published message
-                  add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "4", $location);' ) );
-         }
-         if ( !empty($fechaFin )) {
-                  if($fechaFin < $fechaIni){
-                           publi_post_to_pendig($post_id);
-                           add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "5", $location);' ) );
-                  }
-                  if($fechaFin < date("d/m/Y")){
-                           publi_post_to_pendig($post_id);
-                           add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "6", $location);' ) );
-                  }
-         }
+    global $post;
+    var_dump($post); die;
+    if ( $post->post_type != 'publi' ) {
+
+         return $post_id;
+     }
+     if ( empty($fechaIni )) {
+              publi_post_to_pendig($post_id);
+              // filter the query URL to change the published message
+              add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "4", $location);' ) );
+     }
+     if ( !empty($fechaFin )) {
+              if($fechaFin < $fechaIni){
+                       publi_post_to_pendig($post_id);
+                       add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "5", $location);' ) );
+              }
+              if($fechaFin < date("d/m/Y")){
+                       publi_post_to_pendig($post_id);
+                       add_filter( 'redirect_post_location', create_function( '$location','return add_query_arg("message", "8", $location);' ) );
+              }
+     }
 }
 
 function publi_post_to_pendig($post_id){
-         global $wpdb;
-         $wpdb->update( $wpdb->posts, array( 'post_status' => 'pending' ), array( 'ID' => $post_id ) );
+    global $wpdb;
+    $wpdb->update( $wpdb->posts, array( 'post_status' => 'pending' ), array( 'ID' => $post_id ) );
 }
 
 add_action( 'admin_notices', 'publi_post_error_admin_message' );
 function publi_post_error_admin_message() {
-         if ( isset( $_GET['message'] ) ) {
-                  switch ($_GET['message'] ) {
-                           case 4:
-                                    echo"<div class=\"error\"> <p>No se ha introducido fecha de inicio</p></div>";
-                                    break;
-                           case 5:
-                                    echo"<div class=\"error\"> <p>La fecha de Fin debe ser mayor a la de inicio</p></div>";
-                                    break;
-                           case 6:
-                                    echo"<div class=\"error\"> <p>La fecha de Fin debe ser mayor a hoy</p></div>";
-                                    break;
-                           case 7:
-                                    echo"<div class=\"error\"> <p>Debe rellenar una comision</p></div>";
-                                    break;
-                           default:
-                                    break;
-                  }
-         }
+    if ( isset( $_GET['message'] ) ) {
+        switch ($_GET['message'] ) {
+        case 4:
+            echo"<div class=\"error\"> <p>No se ha introducido fecha de inicio</p></div>";
+            break;
+        case 5:
+            echo"<div class=\"error\"> <p>La fecha de Fin debe ser mayor a la de inicio</p></div>";
+            break;
+        case 7:
+            echo"<div class=\"error\"> <p>Debe rellenar una comision</p></div>";
+            break;
+         case 8:
+            echo"<div class=\"error\"> <p>La fecha de Fin debe ser mayor a hoy</p></div>";
+            break;
+        default:
+            break;
+        }
+    }
 }
 
 function publi_shortcode( $atts ) {
