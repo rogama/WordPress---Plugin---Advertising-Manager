@@ -5,7 +5,7 @@ Plugin URI
 Description: Administra y gestiona los bloques de Publi de tu Site
 Author: ROG@MA
 Author URI: http://www.rogamainformatica.es
-Version: 0.0.5
+Version: 0.0.6
 License: GPL2
 */
 include_once 'widget/Publi_Widget.php';
@@ -62,7 +62,10 @@ function publi_register_taxonomies() {
 		'publi',
 		array(
 			'label' => __( 'Proveedor' ),
-			'rewrite' => array( 'slug' => 'proveedor' )
+			'rewrite' => array( 'slug' => 'proveedor', 
+            'show_ui' => true,
+            'show_admin_column' => true,
+            'query_var' => true)
 		)
 	);
    	register_taxonomy(
@@ -70,7 +73,10 @@ function publi_register_taxonomies() {
 		'publi',
 		array(
 			'label' => __( 'Tamaños' ),
-			'rewrite' => array( 'slug' => 'sizes' )
+			'rewrite' => array( 'slug' => 'sizes',
+            'show_ui' => true,
+            'show_admin_column' => true,
+            'query_var' => true)
 		)
 	);
 }
@@ -212,8 +218,8 @@ function publi_custom_columns( $columns ) {
 		'comision_euro' => __( 'Comision €' ),
         'comision_percent' => __( 'Comision %' ),
         'activado' => __( 'Activate' ),
-        'proveedor' => __( 'Proveedor' ),
-        'sizes' => __( 'sizes' )
+//        'proveedor' => __( 'Proveedor' ),
+//        'taxonomy-sizes' => __( 'sizes' )
 	);
     return array_merge($columns, $custom);
 }
@@ -280,13 +286,21 @@ function publi_custom_columns_content( $column, $post_id ) {
 	}
 }
 
+add_filter( 'manage_taxonomies_for_publi_columns', 'publi_type_columns', 10, 2 );
+function publi_type_columns( $taxonomies, $post_type ) {
+    $taxonomies[] = "proveedor";
+    $taxonomies[] = "sizes";
+    
+    return $taxonomies;
+}
+
 add_filter( 'manage_edit-publi_sortable_columns', 'publi_custom_columns_sort' );
 function publi_custom_columns_sort( $columns ) {
 	$columns['comision_euro'] = "comision_euro";
     $columns['comision_percent'] = "comision_percent";
     $columns['activado'] = "activate";
-    $columns['proveedor'] = "proveedor";
-    $columns['sizes'] = "sizes";
+    $columns['taxonomy-proveedor'] = "proveedor";
+    $columns['taxonomy-sizes'] = "sizes";
 
 	return $columns;
 }
@@ -303,7 +317,7 @@ function publi_sort_ads( $vars ) {
 	if ( isset( $vars['post_type'] ) && $vars['post_type'] == 'publi') {
 		$vars = sort_ads_by_comision_euro($vars);
         $vars = sort_ads_by_comision_percent($vars);
-        $vars = sort_ads_by_activate($vars);
+        $vars = sort_ads_by_activate($vars);        
 	}
 
 	return $vars;
@@ -351,16 +365,48 @@ function sort_ads_by_activate($vars){
     return $vars;
 }
 
-add_filter( 'manage_taxonomies_for_publi_columns', 'publi_type_columns', 10, 2 );
-function publi_type_columns( $taxonomies, $post_type  ) {
-    $taxonomies[] = "proveedor";
-    $taxonomies[] = "sizes";
-    
-    return $taxonomies;
+add_filter('posts_clauses', 'mbe_sort_custom_column', 10, 2);
+function mbe_sort_custom_column($clauses, $wp_query){
+    global $wpdb;
+    if(isset($wp_query->query['orderby']) && $wp_query->query['orderby'] == 'sizes'){
+        $clauses['join'] .= <<<SQL
+LEFT OUTER JOIN {$wpdb->term_relationships} ON {$wpdb->posts}.ID={$wpdb->term_relationships}.object_id
+LEFT OUTER JOIN {$wpdb->term_taxonomy} USING (term_taxonomy_id)
+LEFT OUTER JOIN {$wpdb->terms} USING (term_id)
+SQL;
+        $clauses['where'] .= "AND (taxonomy = 'sizes' OR taxonomy IS NULL)";
+        $clauses['groupby'] = "object_id";
+        $clauses['orderby'] = "GROUP_CONCAT({$wpdb->terms}.name ORDER BY name ASC)";
+        if(strtoupper($wp_query->get('order')) == 'ASC'){
+            $clauses['orderby'] .= 'ASC';
+        } else{
+            $clauses['orderby'] .= 'DESC';
+        }
+    }elseif(isset($wp_query->query['orderby']) && $wp_query->query['orderby'] == 'proveedor'){
+        $clauses['join'] .= <<<SQL
+LEFT OUTER JOIN {$wpdb->term_relationships} ON {$wpdb->posts}.ID={$wpdb->term_relationships}.object_id
+LEFT OUTER JOIN {$wpdb->term_taxonomy} USING (term_taxonomy_id)
+LEFT OUTER JOIN {$wpdb->terms} USING (term_id)
+SQL;
+        $clauses['where'] .= "AND (taxonomy = 'proveedor' OR taxonomy IS NULL)";
+        $clauses['groupby'] = "object_id";
+        $clauses['orderby'] = "GROUP_CONCAT({$wpdb->terms}.name ORDER BY name ASC)";
+        if(strtoupper($wp_query->get('order')) == 'ASC'){
+            $clauses['orderby'] .= 'ASC';
+        } else{
+            $clauses['orderby'] .= 'DESC';
+        }
+    }
+    return $clauses;
 }
 
 
-register_activation_hook( __FILE__, 'convertDatesToTimeStamp' );
+
+/**
+ * Activar esta linea cuando se tengan anuncios creados antes de la version 0.5
+ */
+//register_activation_hook( __FILE__, 'convertDatesToTimeStamp' );
+
 /**
  * funcion que convierte las fechas de todas las entradas del formato dd/mm/YYYY
  * a timestamp.
