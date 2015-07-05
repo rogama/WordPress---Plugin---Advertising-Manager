@@ -5,7 +5,7 @@ Plugin URI
 Description: Administra y gestiona los bloques de Publi de tu Site
 Author: ROG@MA
 Author URI: http://www.rogamainformatica.es
-Version: 0.0.4
+Version: 0.0.5
 License: GPL2
 */
 include_once 'widget/Publi_Widget.php';
@@ -102,12 +102,22 @@ function publi_save_metas( $post_id, $post) {
              return $post_id;
          }
          
+         $timeStampFechaIni = "";
+         $timeStampFechaFin = "";
+         
          if ( isset($_POST['comision']) || isset($_POST['activado']) || isset($_POST['fecha_ini']) || isset($_POST['fecha_fin']) ) {
+             
+             list($day, $month, $year) = explode("/", filter_input(INPUT_POST, "fecha_ini", FILTER_SANITIZE_STRING));
+             $timeStampFechaIni = mktime(0, 0, 0, $month, $day, $year);
+             
+             list($day, $month, $year) = explode("/", filter_input(INPUT_POST, "fecha_fin", FILTER_SANITIZE_STRING));
+             $timeStampFechaFin = mktime(0, 0, 0, $month, $day, $year);
+             
                   update_post_meta( $post_id, 'comision_euro', filter_input(INPUT_POST, "comision_euro", FILTER_SANITIZE_STRING));
                   update_post_meta( $post_id, 'comision_percent', filter_input(INPUT_POST, "comision_percent", FILTER_SANITIZE_STRING));
                   update_post_meta( $post_id, 'activado', filter_input(INPUT_POST, "activado", FILTER_VALIDATE_BOOLEAN));
-                  update_post_meta( $post_id, 'fecha_ini', filter_input(INPUT_POST, "fecha_ini", FILTER_SANITIZE_STRING));
-                  update_post_meta( $post_id, 'fecha_fin', filter_input(INPUT_POST, "fecha_fin", FILTER_SANITIZE_STRING));
+                  update_post_meta( $post_id, 'fecha_ini', $timeStampFechaIni);
+                  update_post_meta( $post_id, 'fecha_fin', $timeStampFechaFin);
                   update_post_meta( $post_id, 'prioridad', filter_input(INPUT_POST, "prioridad", FILTER_VALIDATE_INT));
          }     
 }
@@ -125,7 +135,7 @@ function publi_completion_validator($post_id, $post) {
          // on attempting to publish - check for completion and intervene if necessary
          if ( ( isset( $_POST['publish'] ) || isset( $_POST['save'] ) ) && $_POST['post_status'] == 'publish' ) {
                   //  don't allow publishing while any of these are incomplete
-                  validateDates($post_id, $fechaIni, $fechaFin) ;
+                  //validateDates($post_id, $fechaIni, $fechaFin) ;
                   
                   if ( !get_post_meta( $post_id, 'comision_euro', true ) && 
                           !get_post_meta( $post_id, 'comision_percent', true )) {
@@ -185,6 +195,7 @@ function publi_post_error_admin_message() {
         }
     }
 }
+
 add_shortcode( 'publi-tag', 'publi_shortcode' );
 function publi_shortcode( $atts ) {
          $ads = getAds(get_term_by( 'name', $atts['size'], 'sizes'));
@@ -346,4 +357,38 @@ function publi_type_columns( $taxonomies, $post_type  ) {
     $taxonomies[] = "sizes";
     
     return $taxonomies;
+}
+
+
+register_activation_hook( __FILE__, 'convertDatesToTimeStamp' );
+/**
+ * funcion que convierte las fechas de todas las entradas del formato dd/mm/YYYY
+ * a timestamp.
+ * 
+ * Utilizar solo si se tienen posts introducidos antes de la version 0.5
+ * 
+ */
+function convertDatesToTimeStamp(){   
+    $postPubli = get_posts(array(
+        'post_type' => 'publi',
+        'posts_per_page' => -1,
+    ));
+    
+    foreach ($postPubli as $publi) {
+        $fechaIni = get_post_meta($publi->ID, "fecha_ini")[0];
+        $fechaFin = get_post_meta($publi->ID, "fecha_fin")[0];
+        
+        if (strripos($fechaIni, "/")) {
+            list($day, $month, $year) = explode("/", $fechaIni);
+            $timeStampFechaIni = mktime(0,0,0,$month, $day, $year);
+            update_post_meta( $publi->ID, 'fecha_ini', $timeStampFechaIni);
+        }
+
+        if (strripos($fechaFin, "/")) {
+            list($day, $month, $year) = explode("/", $fechaFin);
+            $timeStampFechaFin = mktime(0,0,0,$month, $day, $year);
+            update_post_meta( $publi->ID, 'fecha_fin', $timeStampFechaFin);
+        }
+        
+    }
 }
