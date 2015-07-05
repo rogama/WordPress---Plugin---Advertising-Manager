@@ -5,7 +5,7 @@ Plugin URI
 Description: Administra y gestiona los bloques de Publi de tu Site
 Author: ROG@MA
 Author URI: http://www.rogamainformatica.es
-Version: 0.0.4
+Version: 0.0.5
 License: GPL2
 */
 include_once 'widget/Publi_Widget.php';
@@ -183,9 +183,42 @@ function publi_post_error_admin_message() {
          }
 }
 
+add_shortcode( 'publi-tag', 'publi_shortcode' );
 function publi_shortcode( $atts ) {
          $ads = getAds(get_term_by( 'name', $atts['size'], 'sizes'));
          $totalComision = getPercents($ads);
          echo getAdContent(addPercentToAd($ads, $totalComision), mt_rand(0, 100));
 }
-add_shortcode( 'publi-tag', 'publi_shortcode' );
+
+register_activation_hook( __FILE__, 'convertDatesToTimeStamp' );
+/**
+ * funcion que convierte las fechas de todas las entradas del formato dd/mm/YYYY
+ * a timestamp.
+ * 
+ * Utilizar solo si se tienen posts introducidos antes de la version 0.5
+ * 
+ */
+function convertDatesToTimeStamp(){   
+    $postPubli = get_posts(array(
+        'post_type' => 'publi',
+        'posts_per_page' => -1,
+    ));
+    
+    foreach ($postPubli as $publi) {
+        $fechaIni = get_post_meta($publi->ID, "fecha_ini")[0];
+        $fechaFin = get_post_meta($publi->ID, "fecha_fin")[0];
+        
+        if (strripos($fechaIni, "/")) {
+            list($day, $month, $year) = explode("/", $fechaIni);
+            $timeStampFechaIni = mktime(0,0,0,$month, $day, $year);
+            update_post_meta( $publi->ID, 'fecha_ini', $timeStampFechaIni);
+        }
+
+        if (strripos($fechaFin, "/")) {
+            list($day, $month, $year) = explode("/", $fechaFin);
+            $timeStampFechaFin = mktime(0,0,0,$month, $day, $year);
+            update_post_meta( $publi->ID, 'fecha_fin', $timeStampFechaFin);
+        }
+        
+    }
+}
