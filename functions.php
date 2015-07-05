@@ -20,7 +20,7 @@ function getAds($sizeTagId){
                                     'relation' => 'OR',
                                              array(
                                                       'key'     => 'fecha_fin',
-                                                      'value'   => date("d/m/Y"),
+                                                      'value'   => strtotime("now"),
                                                       'compare' => '>='
                                              ),
                                              array(
@@ -31,7 +31,7 @@ function getAds($sizeTagId){
                                     'relation' => 'AND',
                                              array(
                                                       'key'     => 'fecha_ini',
-                                                      'value'   => date("d/m/Y"),
+                                                      'value'   => strtotime("now"),
                                                       'compare' => '<='
                                              ),
                                              array(

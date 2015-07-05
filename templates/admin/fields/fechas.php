@@ -1,7 +1,13 @@
 <?php 
       global $post;
-      $fecha_ini = get_post_meta( $post->ID, 'fecha_ini', true );
+
+      $fecha_ini = date("d/m/Y", get_post_meta( $post->ID, 'fecha_ini', true ));
+      
       $fecha_fin = get_post_meta( $post->ID, 'fecha_fin', true );
+      if(!empty($fecha_fin)){
+          $fecha_fin = date("d/m/Y", $fecha_fin);
+      }
+      
       $activado = get_post_meta( $post->ID, 'activado', true );
 ?>
 
