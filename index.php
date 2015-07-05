@@ -99,15 +99,16 @@ add_action('save_post', 'publi_completion_validator', 20, 2);
 function publi_save_metas( $post_id, $post) {
          if ( $post->post_type != 'publi' ) {return $post_id;}
          
+         $timeStampFechaIni = "";
+         $timeStampFechaFin = "";
+         
          if ( isset($_POST['comision']) || isset($_POST['activado']) || isset($_POST['fecha_ini']) || isset($_POST['fecha_fin']) ) {
-             $fechaIni = filter_input(INPUT_POST, "fecha_ini", FILTER_SANITIZE_STRING);
-             $fechaFin = filter_input(INPUT_POST, "fecha_fin", FILTER_SANITIZE_STRING);
              
-             list($day, $month, $year) = explode("/", $fechaIni);
-             $timeStampFechaIni = mktime(0,0,0,$month, $day, $year);
+             list($day, $month, $year) = explode("/", filter_input(INPUT_POST, "fecha_ini", FILTER_SANITIZE_STRING));
+             $timeStampFechaIni = mktime(0, 0, 0, $month, $day, $year);
              
-             list($day, $month, $year) = explode("/", $fechaFin);
-             $timeStampFechaFin = mktime(0,0,0,$month, $day, $year);
+             list($day, $month, $year) = explode("/", filter_input(INPUT_POST, "fecha_fin", FILTER_SANITIZE_STRING));
+             $timeStampFechaFin = mktime(0, 0, 0, $month, $day, $year);
              
                   update_post_meta( $post_id, 'comision_euro', filter_input(INPUT_POST, "comision_euro", FILTER_SANITIZE_STRING));
                   update_post_meta( $post_id, 'comision_percent', filter_input(INPUT_POST, "comision_percent", FILTER_SANITIZE_STRING));
@@ -189,6 +190,8 @@ function publi_shortcode( $atts ) {
          $totalComision = getPercents($ads);
          echo getAdContent(addPercentToAd($ads, $totalComision), mt_rand(0, 100));
 }
+
+
 
 register_activation_hook( __FILE__, 'convertDatesToTimeStamp' );
 /**
