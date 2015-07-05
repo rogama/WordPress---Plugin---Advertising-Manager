@@ -100,11 +100,20 @@ function publi_save_metas( $post_id, $post) {
          if ( $post->post_type != 'publi' ) {return $post_id;}
          
          if ( isset($_POST['comision']) || isset($_POST['activado']) || isset($_POST['fecha_ini']) || isset($_POST['fecha_fin']) ) {
+             $fechaIni = filter_input(INPUT_POST, "fecha_ini", FILTER_SANITIZE_STRING);
+             $fechaFin = filter_input(INPUT_POST, "fecha_fin", FILTER_SANITIZE_STRING);
+             
+             list($day, $month, $year) = explode("/", $fechaIni);
+             $timeStampFechaIni = mktime(0,0,0,$month, $day, $year);
+             
+             list($day, $month, $year) = explode("/", $fechaFin);
+             $timeStampFechaFin = mktime(0,0,0,$month, $day, $year);
+             
                   update_post_meta( $post_id, 'comision_euro', filter_input(INPUT_POST, "comision_euro", FILTER_SANITIZE_STRING));
                   update_post_meta( $post_id, 'comision_percent', filter_input(INPUT_POST, "comision_percent", FILTER_SANITIZE_STRING));
                   update_post_meta( $post_id, 'activado', filter_input(INPUT_POST, "activado", FILTER_VALIDATE_BOOLEAN));
-                  update_post_meta( $post_id, 'fecha_ini', filter_input(INPUT_POST, "fecha_ini", FILTER_SANITIZE_STRING));
-                  update_post_meta( $post_id, 'fecha_fin', filter_input(INPUT_POST, "fecha_fin", FILTER_SANITIZE_STRING));
+                  update_post_meta( $post_id, 'fecha_ini', $timeStampFechaIni);
+                  update_post_meta( $post_id, 'fecha_fin', $timeStampFechaFin);
                   update_post_meta( $post_id, 'prioridad', filter_input(INPUT_POST, "prioridad", FILTER_VALIDATE_INT));
          }     
 }
@@ -119,7 +128,7 @@ function publi_completion_validator($post_id, $post) {
          // on attempting to publish - check for completion and intervene if necessary
          if ( ( isset( $_POST['publish'] ) || isset( $_POST['save'] ) ) && $_POST['post_status'] == 'publish' ) {
                   //  don't allow publishing while any of these are incomplete
-                  validateDates($post_id, $fechaIni, $fechaFin) ;
+                  //validateDates($post_id, $fechaIni, $fechaFin) ;
                   
                   if ( !get_post_meta( $post_id, 'comision_euro', true ) && !get_post_meta( $post_id, 'comision_percent', true )) {
                            publi_post_to_pendig($post_id);
